@@ -201,19 +201,26 @@ int main() {
     for(int i = 1; i < 49; i++) {
         mvaddch(i,i/4,'X');
     }*/
-    /*for(int i = 0; i < MAX_MISSILES; i++) {
-        mvprintw(i*10, 0, "%d, %d, %d, %d, %d\n", bullet[i].xPos, bullet[i].yPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
-    }*/
+    move(0,0);
+    for(int i = 0; i < MAX_MISSILES; i++) {
+        printw("%d,%d,%d,%d,%d  ", bullet[i].xPos, bullet[i].yPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
+    }
     for(int h = 0; h < HEIGHT-2; h++) {
         for(int i = 0; i < MAX_MISSILES;i++) {
             mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
         }
-        /*for(int i = 0; i < MAX_MISSILES; i++) {
-            temp = bullet[i].xOrigin + (i/bullet[i].changesAfter);
-            bullet[i].xPos = temp;
-        }*/
+        for(int i = 0; i < MAX_MISSILES; i++) {
+            //printf ("h=%d, changes %d.\n",h,bullet[i].changesAfter);
+            if(bullet[i].changesAfter != 0) {
+                bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
+                }
+                else {
+                    bullet[i].xPos = bullet[i].xOrigin + h;
+                }
+            bullet[i].yPos += 1;
+        }
         refresh();
-        usleep(1000000);
+        usleep(100000);
     }
     
     
