@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <time.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define HEIGHT 50
 #define WIDTH 125
@@ -13,6 +14,7 @@
 
 typedef struct Bullet {
     int xPos;
+    int xOrigin;
     int yPos;
     int changesAfter;
     int direction;
@@ -49,68 +51,78 @@ Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
    
     if(myBullet.direction == 1) {
         if(myBullet.changesAfter == 0){
-            myBullet.target = housePos[rand() % HOUSES];
+            myBullet.target = housePos[(rand() % HOUSES)];
             myBullet.xPos = myBullet.target;
+            myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
         }
         else if(myBullet.changesAfter == 1) {
             while((myBullet.target < 0) && (myBullet.target < 2)) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 2) {
             while(myBullet.target < 1) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 3) {
             while(myBullet.target < 1) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else {
-            myBullet.target = rand() % HOUSES;
+            myBullet.target = (rand() % HOUSES);
             myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
+            myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
         }
         
     }
     else {
         if(myBullet.changesAfter == 0){
-            myBullet.target = housePos[rand() % HOUSES];
+            myBullet.target = housePos[(rand() % HOUSES)];
             myBullet.xPos = myBullet.target;
+            myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
         }
         else if(myBullet.changesAfter == 1) {
             while((myBullet.target < 0 || myBullet.target > 3) && (myBullet.target < 2)) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 2) {
             while(myBullet.target < 1 || myBullet.target > 5) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 3) {
             while(myBullet.target < 1 || myBullet.target > 5) {
-                myBullet.target = rand() % HOUSES;
+                myBullet.target = (rand() % HOUSES);
                 myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+                myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 4) {
-            myBullet.target = rand() % HOUSES;
+            myBullet.target = (rand() % HOUSES);
             myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+            myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
             
         }
@@ -123,11 +135,9 @@ Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
 Bullet createBullet(int housePos[HOUSES]) {
     Bullet myBullet;
     myBullet.target = -1;
-    srand(time(NULL));
-    myBullet.changesAfter = rand() % 5;
-    if(rand() % 2 == 0) {
+    myBullet.changesAfter = (rand() % 5);
+    if((rand() % 2) == 0) {
         myBullet.direction = 1;
-    
     }
     else {
         myBullet.direction = -1;
@@ -157,6 +167,8 @@ void createBase(int housePos[HOUSES]) {
 int main() {
     int housePos[HOUSES];
     Bullet bullet[MAX_MISSILES];
+    int temp;
+    srand(time(NULL));
 
     /*for(int i = 0; i < MAX_MISSILES; i++) {
         bullet[i] = createBullet();
@@ -189,12 +201,22 @@ int main() {
     for(int i = 1; i < 49; i++) {
         mvaddch(i,i/4,'X');
     }*/
-    while(1) {
-        for(int i = 0; i < MAX_MISSILES; i++) {
-
+    /*for(int i = 0; i < MAX_MISSILES; i++) {
+        mvprintw(i*10, 0, "%d, %d, %d, %d, %d\n", bullet[i].xPos, bullet[i].yPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
+    }*/
+    for(int h = 0; h < HEIGHT-2; h++) {
+        for(int i = 0; i < MAX_MISSILES;i++) {
+            mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
         }
+        /*for(int i = 0; i < MAX_MISSILES; i++) {
+            temp = bullet[i].xOrigin + (i/bullet[i].changesAfter);
+            bullet[i].xPos = temp;
+        }*/
         refresh();
+        usleep(1000000);
     }
+    
+    
 
     getch();
     delwin(game);
