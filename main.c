@@ -48,8 +48,11 @@ void drawMissile(int x, int y) {
 
 
 Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
-   
+   int temp = -1;
+
     if(myBullet.direction == 1) {
+        move(1,1);
+        printw("we got here");
         if(myBullet.changesAfter == 0){
             myBullet.target = housePos[(rand() % HOUSES)];
             myBullet.xPos = myBullet.target;
@@ -57,31 +60,35 @@ Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
             myBullet.yPos = 1;
         }
         else if(myBullet.changesAfter == 1) {
-            while((myBullet.target < 0) && (myBullet.target < 2)) {
-                myBullet.target = (rand() % HOUSES);
+            while(temp < 2) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 2) {
-            while(myBullet.target < 1) {
-                myBullet.target = (rand() % HOUSES);
+            while(temp < 1) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 3) {
-            while(myBullet.target < 1) {
-                myBullet.target = (rand() % HOUSES);
+            while(temp < 1) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
                 myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else {
-            myBullet.target = (rand() % HOUSES);
+            temp = (rand() % HOUSES);
+            myBullet.target = housePos[temp];
             myBullet.xPos = myBullet.target -((HEIGHT-3)/myBullet.changesAfter);
             myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
@@ -96,32 +103,36 @@ Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
             myBullet.yPos = 1;
         }
         else if(myBullet.changesAfter == 1) {
-            while((myBullet.target < 0 || myBullet.target > 3) && (myBullet.target < 2)) {
-                myBullet.target = (rand() % HOUSES);
-                myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+            while(temp < 0 || temp > 3) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
+                myBullet.xPos = myBullet.target +((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 2) {
-            while(myBullet.target < 1 || myBullet.target > 5) {
-                myBullet.target = (rand() % HOUSES);
-                myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+            while(temp < 0 || temp > 4) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
+                myBullet.xPos = myBullet.target +((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 3) {
-            while(myBullet.target < 1 || myBullet.target > 5) {
-                myBullet.target = (rand() % HOUSES);
-                myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+            while(temp < 0 || temp > 4) {
+                temp = (rand() % HOUSES);
+                myBullet.target = housePos[temp];
+                myBullet.xPos = myBullet.target +((HEIGHT-3)/myBullet.changesAfter);
                 myBullet.xOrigin = myBullet.xPos;
                 myBullet.yPos = 1;
             }
         }
         else if(myBullet.changesAfter == 4) {
-            myBullet.target = (rand() % HOUSES);
-            myBullet.xPos = myBullet.target +((HEIGHT+3)/myBullet.changesAfter);
+            temp = (rand() % HOUSES);
+            myBullet.target = housePos[temp];
+            myBullet.xPos = myBullet.target +((HEIGHT-3)/myBullet.changesAfter);
             myBullet.xOrigin = myBullet.xPos;
             myBullet.yPos = 1;
             
@@ -149,10 +160,13 @@ Bullet createBullet(int housePos[HOUSES]) {
 
 void createBase(int housePos[HOUSES]) {
     int temp;
+    
     for(int i = 0; i < HOUSES; i++) {
         drawHouse(48, (WIDTH/HOUSES*i)+(WIDTH/HOUSES/2));
         housePos[i] = (WIDTH/HOUSES*i)+(WIDTH/HOUSES/2)+2;
         temp = i;
+        move(15+i,15);
+        printw("house %d: %d",i,housePos[i]);
     }
     mvaddch(0,0,'1');
     mvaddch(49,0,'2');
@@ -180,6 +194,7 @@ int main() {
     box(game,0,0);
     wrefresh(game);
     createBase(housePos);
+    
     for(int i = 0; i < MAX_MISSILES; i++) {
         bullet[i] = createBullet(housePos);
     }
@@ -201,29 +216,31 @@ int main() {
     for(int i = 1; i < 49; i++) {
         mvaddch(i,i/4,'X');
     }*/
-    move(0,0);
+    move(50,1);
     for(int i = 0; i < MAX_MISSILES; i++) {
-        printw("%d,%d,%d,%d,%d  ", bullet[i].xPos, bullet[i].yPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
+        printw("x:%d,change:%d,direction:%d,target:%d\n", bullet[i].xPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
     }
-    for(int h = 0; h < HEIGHT-2; h++) {
+
+
+    for(int h = 1; h < HEIGHT-1; h++) {
         for(int i = 0; i < MAX_MISSILES;i++) {
             mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
         }
         for(int i = 0; i < MAX_MISSILES; i++) {
             //printf ("h=%d, changes %d.\n",h,bullet[i].changesAfter);
             if(bullet[i].changesAfter != 0) {
-                bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
+                if(bullet[i].direction == 1) {
+                    bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
                 }
                 else {
-                    bullet[i].xPos = bullet[i].xOrigin + h;
+                    bullet[i].xPos = bullet[i].xOrigin - (int)(h/bullet[i].changesAfter);
                 }
+            }
             bullet[i].yPos += 1;
         }
         refresh();
         usleep(100000);
     }
-    
-    
 
     getch();
     delwin(game);
