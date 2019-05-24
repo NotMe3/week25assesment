@@ -17,6 +17,7 @@
 typedef struct Bullet {
     int xPos;
     int xOrigin;
+    int xBefore;
     int yPos;
     int changesAfter;
     int direction;
@@ -68,6 +69,9 @@ void createWindow() {
     clear();
     cbreak();
     noecho();
+    //start_color();
+    //init_pair(1, COLOR_RED, COLOR_BLACK);
+    //attron(COLOR_PAIR(1));
 }
 
 void drawHouse(int x, int y){
@@ -217,13 +221,9 @@ int isValidToMoveTo(int x, int y) {
     int temp = 1;
 
     if(x > 43 || x < 1) {
-        mvprintw(20,20,"x boundaries broken");
-
         temp = -1;
     }
     else if(y > 120 || y < 5) {
-        mvprintw(20,20,"y boundaries broken");
-
         temp = -1;
     }
 
@@ -234,7 +234,9 @@ int isValidToMoveTo(int x, int y) {
 void drawOrDeleteCursor(int flag, int x, int y) {
     if(flag) { //draw
         mvprintw(x-1,y,"-");
-        mvprintw(x,y-2,"| + |");
+        mvprintw(x,y-2,"|");
+        mvprintw(x,y,"+");
+        mvprintw(x,y+2,"|");
         mvprintw(x+1,y,"-");
     }
     else { //delete
@@ -269,8 +271,39 @@ void shoot(int x, int y, Shot shots[SHOTS]) {
 
 
 
-void manageShots(Shot shots[SHOTS]) {
-    int temp;
+int isInRange(int stageAndRange, int xShot, int yShot, int xBullet, int yBullet) {
+    if(stageAndRange == 0) {
+        return -1;
+    }
+    else if(stageAndRange == 1 || stageAndRange == 10 || stageAndRange == 11 ) {
+        stageAndRange == 1;
+    }
+    else {
+        stageAndRange = 3;
+    }
+    if((xShot - yBullet) > (-stageAndRange) && (xShot - yBullet) < stageAndRange) {
+        if((yShot - xBullet) > (-stageAndRange) && (yShot - xBullet) < stageAndRange) {
+            mvprintw(3,2,"bullet hit");
+            
+            return 1;
+        }
+    }
+
+    return -1;
+}
+
+
+
+void manageShots(Shot shots[SHOTS], Bullet bullets[MAX_MISSILES]) {
+    for(int i = 0; i < SHOTS; i++) {
+        for(int i = 0; i < MAX_MISSILES; i++) {
+            if(isInRange(shots[i].stage, shots[i].xPos, shots[i].yPos, bullets[i].xPos, bullets[i].yPos) == 1) {
+                bullets[i].yPos = -2;
+            }
+        }
+    }
+
+
 
     for(int i = 0; i < SHOTS; i++) {
         if(shots[i].stage == 1) {
@@ -281,15 +314,15 @@ void manageShots(Shot shots[SHOTS]) {
             mvprintw(shots[i].xPos+2, shots[i].yPos,"+");
             shots[i].stage = 2;
         }
-        else if(shots[i].stage == 2) {
+        else if(shots[i].stage == 3) {
             mvprintw(shots[i].xPos-2, shots[i].yPos-1,"###");
             mvprintw(shots[i].xPos-1, shots[i].yPos-2,"#####");
             mvprintw(shots[i].xPos, shots[i].yPos-2,"##@##");
             mvprintw(shots[i].xPos+1, shots[i].yPos-2,"#####");
             mvprintw(shots[i].xPos+2, shots[i].yPos-1,"###");
-            shots[i].stage = 3;
+            shots[i].stage = 4;
         }
-        else if(shots[i].stage == 3) {
+        else if(shots[i].stage == 7) {
             mvprintw(shots[i].xPos-2, shots[i].yPos-1,"   ");
             mvprintw(shots[i].xPos-1, shots[i].yPos-2,"     ");
             mvprintw(shots[i].xPos, shots[i].yPos-2,"     ");
@@ -301,9 +334,9 @@ void manageShots(Shot shots[SHOTS]) {
             mvprintw(shots[i].xPos, shots[i].yPos-2,"+#O#+");
             mvprintw(shots[i].xPos+1, shots[i].yPos-1,"+#+");
             mvprintw(shots[i].xPos+2, shots[i].yPos,"+");
-            shots[i].stage = 4;
+            shots[i].stage = 8;
         }
-        else if(shots[i].stage == 4) {
+        else if(shots[i].stage == 9) {
             mvprintw(shots[i].xPos-2, shots[i].yPos," ");
             mvprintw(shots[i].xPos-1, shots[i].yPos-1,"   ");
             mvprintw(shots[i].xPos, shots[i].yPos-2,"     ");
@@ -313,13 +346,16 @@ void manageShots(Shot shots[SHOTS]) {
             mvprintw(shots[i].xPos-1, shots[i].yPos,"+");
             mvprintw(shots[i].xPos, shots[i].yPos-1,"+O+");
             mvprintw(shots[i].xPos+1, shots[i].yPos,"+");
-            shots[i].stage = 5;
+            shots[i].stage = 10;
         }
-        else if(shots[i].stage == 5) {
+        else if(shots[i].stage == 11) {
             mvprintw(shots[i].xPos-1, shots[i].yPos," ");
             mvprintw(shots[i].xPos, shots[i].yPos-1,"   ");
             mvprintw(shots[i].xPos+1, shots[i].yPos," ");
             shots[i].stage = 0;
+        }
+        else if(shots[i].stage != 0) {
+            shots[i].stage++;
         }
     }
 }
@@ -328,7 +364,14 @@ void manageShots(Shot shots[SHOTS]) {
 
 
 void manageBullets(Bullet bullets[MAX_MISSILES]) {
-    
+    for(int i =0; i < MAX_MISSILES; i++) {
+        //attron(COLOR_PAIR(1));
+        if(bullets[i].yPos != -2) {
+            mvaddch(bullets[i].yPos, bullets[i].xPos, '*');
+            mvaddch(bullets[i].yPos-1, bullets[i].xBefore, ' ');
+        }
+        //attroff(COLOR_PAIR(1));
+    }
 }
 
 
@@ -338,6 +381,10 @@ int main() {
     int housePos[HOUSES];
     Bullet bullet[MAX_MISSILES];
     int input, tempx, tempy, checker;
+    int counterBullets = 75;
+    int counterCrosshair = 1;
+    int counterShots = 25;
+    int counter = 0;
     srand(time(NULL));
 
     //mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
@@ -362,26 +409,6 @@ int main() {
         printw("x:%d,change:%d,direction:%d,target:%d\n", bullet[i].xPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
     }
 
-
-    /*for(int h = 1; h < HEIGHT-1; h++) {
-        for(int i = 0; i < MAX_MISSILES;i++) {
-            mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
-        }
-        for(int i = 0; i < MAX_MISSILES; i++) {
-            if(bullet[i].changesAfter != 0) {
-                if(bullet[i].direction == 1) {
-                    bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
-                }
-                else {
-                    bullet[i].xPos = bullet[i].xOrigin - (int)(h/bullet[i].changesAfter);
-                }
-            }
-            bullet[i].yPos += 1;
-        }
-        refresh();
-        usleep(10000);
-    }*/
-
     wrefresh(game);
 
     Cursor cursor;
@@ -396,65 +423,88 @@ int main() {
     
     
     while(1) {
-        
+        if(counter > 500000) {
+            counter = 0;
+            counterBullets = 0;
+            counterCrosshair = 0;
+        }
 
         mvprintw(1,5,"%d %d",cursor.xPos, cursor.yPos);
         drawOrDeleteCursor(0,tempx,tempy);
         drawOrDeleteCursor(1,cursor.xPos,cursor.yPos);
-        manageShots(shots);
+        if(counter % counterShots == 0) {
+            manageShots(shots, bullet);
+        }
+        manageBullets(bullet);
+        
         
         mvaddch(1,1, ' ');
         refresh();
 
-        timeout(50);
-        input = getch();
-        
+        if(counter % counterCrosshair == 0) {
+            timeout(5);
+            input = getch();
+                
 
-        if(input == KEY_UP) {
-            
-            checker = isValidToMoveTo((cursor.xPos - CROSSHAIR_SPEED), cursor.yPos);
-            if(checker == 1) {
-                tempx = cursor.xPos;
-                tempy = cursor.yPos;
-                cursor.xPos -= CROSSHAIR_SPEED;
+            if(input == KEY_UP) {
+                
+                checker = isValidToMoveTo((cursor.xPos - CROSSHAIR_SPEED), cursor.yPos);
+                if(checker == 1) {
+                    tempx = cursor.xPos;
+                    tempy = cursor.yPos;
+                    cursor.xPos -= CROSSHAIR_SPEED;
+                }
+            }else if(input == KEY_DOWN) {
+                checker = isValidToMoveTo((cursor.xPos + CROSSHAIR_SPEED), cursor.yPos);
+                if(checker == 1) {
+                    tempx = cursor.xPos;
+                    tempy = cursor.yPos;
+                    cursor.xPos += CROSSHAIR_SPEED;
+                }
+            }else if(input == KEY_LEFT) {
+                checker = isValidToMoveTo(cursor.xPos, (cursor.yPos-CROSSHAIR_SPEED));
+                if(checker == 1) {
+                    tempx = cursor.xPos;
+                    tempy = cursor.yPos;
+                    cursor.yPos -= CROSSHAIR_SPEED;
+                }
+            }else if(input == KEY_RIGHT) {
+                checker = isValidToMoveTo(cursor.xPos, (cursor.yPos+CROSSHAIR_SPEED));
+                if(checker == 1) {
+                    tempx = cursor.xPos;
+                    tempy = cursor.yPos;
+                    cursor.yPos += CROSSHAIR_SPEED;
+                }
+            }else if(input == 's') {
+                shoot(cursor.xPos, cursor.yPos, shots);
             }
-        }else if(input == KEY_DOWN) {
-            checker = isValidToMoveTo((cursor.xPos + CROSSHAIR_SPEED), cursor.yPos);
-            if(checker == 1) {
-                tempx = cursor.xPos;
-                tempy = cursor.yPos;
-                cursor.xPos += CROSSHAIR_SPEED;
-            }
-        }else if(input == KEY_LEFT) {
-            checker = isValidToMoveTo(cursor.xPos, (cursor.yPos-CROSSHAIR_SPEED));
-            if(checker == 1) {
-                tempx = cursor.xPos;
-                tempy = cursor.yPos;
-                cursor.yPos -= CROSSHAIR_SPEED;
-            }
-        }else if(input == KEY_RIGHT) {
-            checker = isValidToMoveTo(cursor.xPos, (cursor.yPos+CROSSHAIR_SPEED));
-            if(checker == 1) {
-                tempx = cursor.xPos;
-                tempy = cursor.yPos;
-                cursor.yPos += CROSSHAIR_SPEED;
-            }
-        }else if(input == 's') {
-            shoot(cursor.xPos, cursor.yPos, shots);
         }
-    }
 
-    for(int i = 0; i < MAX_MISSILES; i++) {
-        if(bullet[i].changesAfter != 0) {
-                if(bullet[i].direction == 1) {
-                    bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
+        if(counter % counterBullets == 0) {
+            for(int i = 0; i < MAX_MISSILES; i++) {
+                if(bullet[i].changesAfter != 0 && bullet[i].yPos < 48) {
+                    if(bullet[i].direction == 1) {
+                        bullet[i].xBefore = bullet[i].xPos;
+                        bullet[i].xPos = bullet[i].xOrigin + (int)(bullet[i].yPos/bullet[i].changesAfter);
+                    }
+                    else {
+                        bullet[i].xBefore = bullet[i].xPos;
+                        bullet[i].xPos = bullet[i].xOrigin - (int)(bullet[i].yPos/bullet[i].changesAfter);
+                    }
                 }
                 else {
-                    bullet[i].xPos = bullet[i].xOrigin - (int)(h/bullet[i].changesAfter);
+                    bullet[i].xBefore = bullet[i].xPos;
+                }
+                if(bullet[i].yPos < 48) {
+                    bullet[i].yPos += 1;
                 }
             }
-            bullet[i].yPos += 1;
+        }
+
+        counter++;
     }
+
+    
     printf("\033[?1003l\n");
     wrefresh(game);
     refresh();
