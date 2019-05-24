@@ -26,6 +26,7 @@ void createWindow() {
     clear();
     cbreak();
     noecho();
+    keypad(window, TRUE);
 }
 
 void drawHouse(int x, int y){
@@ -52,7 +53,6 @@ Bullet choosetarget(Bullet myBullet, int housePos[HOUSES]) {
 
     if(myBullet.direction == 1) {
         move(1,1);
-        printw("we got here");
         if(myBullet.changesAfter == 0){
             myBullet.target = housePos[(rand() % HOUSES)];
             myBullet.xPos = myBullet.target;
@@ -166,12 +166,7 @@ void createBase(int housePos[HOUSES]) {
         housePos[i] = (WIDTH/HOUSES*i)+(WIDTH/HOUSES/2)+2;
         temp = i;
         move(15+i,15);
-        printw("house %d: %d",i,housePos[i]);
     }
-    mvaddch(0,0,'1');
-    mvaddch(49,0,'2');
-    mvaddch(0,124,'3');
-    mvaddch(49,124,'4');
     drawMissile(48, ((WIDTH/HOUSES*temp)/2+(WIDTH/HOUSES/2)));
 }
 
@@ -183,10 +178,10 @@ int main() {
     Bullet bullet[MAX_MISSILES];
     int temp;
     srand(time(NULL));
+    MEVENT event;
 
-    /*for(int i = 0; i < MAX_MISSILES; i++) {
-        bullet[i] = createBullet();
-    }*/
+    mousemask(BUTTON1_PRESSED | BUTTON2_PRESSED, NULL);
+
     createWindow();
     refresh();
     WINDOW *game;
@@ -198,24 +193,7 @@ int main() {
     for(int i = 0; i < MAX_MISSILES; i++) {
         bullet[i] = createBullet(housePos);
     }
-    /*for(int i = 1; i < 49; i++) {
-        mvaddch(i,i,'X');
-    }
-    for(int i = 1; i < 49; i++) {
-        mvaddch(i,i,'X');
-    }
-    for(int i = 1; i < 49; i++) {
-        mvaddch(i,i,'X');
-    }
-    for(int i = 1; i < 49; i++) {
-        mvaddch(i,i/2,'X');
-    }
-    for(int i = 1; i < 49; i++) {
-        mvaddch(i,i/3,'X');
-    }
-    for(int i = 1; i < 49; i++) {
-        mvaddch(i,i/4,'X');
-    }*/
+
     move(50,1);
     for(int i = 0; i < MAX_MISSILES; i++) {
         printw("x:%d,change:%d,direction:%d,target:%d\n", bullet[i].xPos, bullet[i].changesAfter, bullet[i].direction, bullet[i].target);
@@ -242,7 +220,16 @@ int main() {
         usleep(100000);
     }
 
-    getch();
+    move(1,1);
+
+    
+
+    while(1) {
+        getmouse(&event);
+        while(KEY_MOUSE) {
+            printw("hmmm ");
+        }
+    }
     delwin(game);
     endwin();
 }
