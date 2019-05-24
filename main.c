@@ -8,6 +8,7 @@
 #define HOUSES 6
 #define MAX_MISSILES 10
 #define CROSSHAIR_SPEED 3
+#define SHOTS 10
 
 
 
@@ -29,12 +30,37 @@ typedef struct Cursor {
 } Cursor;
 
 
-/*Cursor createCursor() {
-    Cursor myCursor;
-    myCursor.xPos = 10;
-    myCursor.yPos = 20;
-    myCursor.speed = CROSSHAIR_SPEED;
-}*/
+
+typedef struct Shot {
+    int xPos;
+    int yPos;
+    int stage;
+} Shot;
+
+
+
+
+Cursor createCursor() {
+    Cursor cursor;
+    cursor.xPos = 40;
+    cursor.yPos = 62;
+    cursor.speed = CROSSHAIR_SPEED;
+
+    return cursor;
+}
+
+
+
+Shot createShots() {
+    Shot shots;
+    shots.stage = 0;
+    shots.xPos = 0;
+    shots.yPos = 0;
+    
+    return shots;
+}
+
+
 
 
 void createWindow() {
@@ -188,13 +214,121 @@ void createBase(int housePos[HOUSES]) {
 
 
 int isValidToMoveTo(int x, int y) {
-    if(x > 44 || x < 1) {
-        return -1;
+    int temp = 1;
+
+    if(x > 43 || x < 1) {
+        mvprintw(20,20,"x boundaries broken");
+
+        temp = -1;
     }
-    if(y > 123 || y < 1) {
-        return -1;
+    else if(y > 120 || y < 5) {
+        mvprintw(20,20,"y boundaries broken");
+
+        temp = -1;
     }
-    return 1;
+
+    return temp;
+}
+
+
+void drawOrDeleteCursor(int flag, int x, int y) {
+    if(flag) { //draw
+        mvprintw(x-1,y,"-");
+        mvprintw(x,y-2,"| + |");
+        mvprintw(x+1,y,"-");
+    }
+    else { //delete
+        mvprintw(x-1,y," ");
+        mvprintw(x,y-2,"     ");
+        mvprintw(x+1,y," ");
+    }
+}
+
+
+
+void shoot(int x, int y, Shot shots[SHOTS]) {
+    int temp = -1;
+
+    for(int i = 0; i < SHOTS; i++) {
+        if(shots[i].stage == 0) {
+            temp = i;
+            shots[i].stage = 1;
+            shots[i].xPos = x;
+            shots[i].yPos = y;
+            break;
+        }        
+    }
+
+    if(temp > 0) {
+        mvprintw(x,y-1," + ");
+        mvprintw(x,y-1,"+O+");
+        mvprintw(x,y-1," + ");
+    }
+}
+
+
+
+
+void manageShots(Shot shots[SHOTS]) {
+    int temp;
+
+    for(int i = 0; i < SHOTS; i++) {
+        if(shots[i].stage == 1) {
+            mvprintw(shots[i].xPos-2, shots[i].yPos,"+");
+            mvprintw(shots[i].xPos-1, shots[i].yPos-1,"+#+");
+            mvprintw(shots[i].xPos, shots[i].yPos-2,"+#O#+");
+            mvprintw(shots[i].xPos+1, shots[i].yPos-1,"+#+");
+            mvprintw(shots[i].xPos+2, shots[i].yPos,"+");
+            shots[i].stage = 2;
+        }
+        else if(shots[i].stage == 2) {
+            mvprintw(shots[i].xPos-2, shots[i].yPos-1,"###");
+            mvprintw(shots[i].xPos-1, shots[i].yPos-2,"#####");
+            mvprintw(shots[i].xPos, shots[i].yPos-2,"##@##");
+            mvprintw(shots[i].xPos+1, shots[i].yPos-2,"#####");
+            mvprintw(shots[i].xPos+2, shots[i].yPos-1,"###");
+            shots[i].stage = 3;
+        }
+        else if(shots[i].stage == 3) {
+            mvprintw(shots[i].xPos-2, shots[i].yPos-1,"   ");
+            mvprintw(shots[i].xPos-1, shots[i].yPos-2,"     ");
+            mvprintw(shots[i].xPos, shots[i].yPos-2,"     ");
+            mvprintw(shots[i].xPos+1, shots[i].yPos-2,"     ");
+            mvprintw(shots[i].xPos+2, shots[i].yPos-1,"   ");
+
+            mvprintw(shots[i].xPos-2, shots[i].yPos,"+");
+            mvprintw(shots[i].xPos-1, shots[i].yPos-1,"+#+");
+            mvprintw(shots[i].xPos, shots[i].yPos-2,"+#O#+");
+            mvprintw(shots[i].xPos+1, shots[i].yPos-1,"+#+");
+            mvprintw(shots[i].xPos+2, shots[i].yPos,"+");
+            shots[i].stage = 4;
+        }
+        else if(shots[i].stage == 4) {
+            mvprintw(shots[i].xPos-2, shots[i].yPos," ");
+            mvprintw(shots[i].xPos-1, shots[i].yPos-1,"   ");
+            mvprintw(shots[i].xPos, shots[i].yPos-2,"     ");
+            mvprintw(shots[i].xPos+1, shots[i].yPos-1,"   ");
+            mvprintw(shots[i].xPos+2, shots[i].yPos," ");
+
+            mvprintw(shots[i].xPos-1, shots[i].yPos,"+");
+            mvprintw(shots[i].xPos, shots[i].yPos-1,"+O+");
+            mvprintw(shots[i].xPos+1, shots[i].yPos,"+");
+            shots[i].stage = 5;
+        }
+        else if(shots[i].stage == 5) {
+            mvprintw(shots[i].xPos-1, shots[i].yPos," ");
+            mvprintw(shots[i].xPos, shots[i].yPos-1,"   ");
+            mvprintw(shots[i].xPos+1, shots[i].yPos," ");
+            shots[i].stage = 0;
+        }
+    }
+}
+
+
+
+
+void manageBullets(Bullet bullets[MAX_MISSILES]) {
+    
 }
 
 
@@ -203,7 +337,7 @@ int isValidToMoveTo(int x, int y) {
 int main() {
     int housePos[HOUSES];
     Bullet bullet[MAX_MISSILES];
-    int input, tempx, tempy;
+    int input, tempx, tempy, checker;
     srand(time(NULL));
 
     //mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
@@ -229,7 +363,7 @@ int main() {
     }
 
 
-    for(int h = 1; h < HEIGHT-1; h++) {
+    /*for(int h = 1; h < HEIGHT-1; h++) {
         for(int i = 0; i < MAX_MISSILES;i++) {
             mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
         }
@@ -246,52 +380,80 @@ int main() {
         }
         refresh();
         usleep(10000);
-    }
+    }*/
 
     wrefresh(game);
 
     Cursor cursor;
-    cursor.xPos = 44;
-    cursor.yPos = 62;
-    cursor.speed = CROSSHAIR_SPEED;
+    cursor = createCursor();
+
+    Shot shots[SHOTS];
+
+    for(int i = 0; i < SHOTS; i++) {
+        shots[i] = createShots();
+    }
+
+    
     
     while(1) {
         
 
-        mvprintw(1,1,"%d %d",cursor.xPos, cursor.yPos);
-        mvaddch(cursor.xPos,cursor.yPos,'X');
-        mvaddch(tempx,tempy,' ');
-        mvaddch(51,126, 'L');
-        mvaddch(51,126, 'L');
+        mvprintw(1,5,"%d %d",cursor.xPos, cursor.yPos);
+        drawOrDeleteCursor(0,tempx,tempy);
+        drawOrDeleteCursor(1,cursor.xPos,cursor.yPos);
+        manageShots(shots);
+        
+        mvaddch(1,1, ' ');
         refresh();
 
+        timeout(50);
         input = getch();
+        
 
         if(input == KEY_UP) {
-            tempx = cursor.xPos;
-            tempy = cursor.yPos;
-            if(isValidToMoveTo(cursor.xPos -= CROSSHAIR_SPEED, cursor.yPos)) {
+            
+            checker = isValidToMoveTo((cursor.xPos - CROSSHAIR_SPEED), cursor.yPos);
+            if(checker == 1) {
+                tempx = cursor.xPos;
+                tempy = cursor.yPos;
                 cursor.xPos -= CROSSHAIR_SPEED;
             }
         }else if(input == KEY_DOWN) {
-            tempx = cursor.xPos;
-            tempy = cursor.yPos;
-            if(isValidToMoveTo(cursor.xPos  += CROSSHAIR_SPEED, cursor.yPos)) {
+            checker = isValidToMoveTo((cursor.xPos + CROSSHAIR_SPEED), cursor.yPos);
+            if(checker == 1) {
+                tempx = cursor.xPos;
+                tempy = cursor.yPos;
                 cursor.xPos += CROSSHAIR_SPEED;
             }
         }else if(input == KEY_LEFT) {
-            tempx = cursor.xPos;
-            tempy = cursor.yPos;
-            if(isValidToMoveTo(cursor.xPos, cursor.yPos  -= CROSSHAIR_SPEED)) {
+            checker = isValidToMoveTo(cursor.xPos, (cursor.yPos-CROSSHAIR_SPEED));
+            if(checker == 1) {
+                tempx = cursor.xPos;
+                tempy = cursor.yPos;
                 cursor.yPos -= CROSSHAIR_SPEED;
             }
         }else if(input == KEY_RIGHT) {
-            tempx = cursor.xPos;
-            tempy = cursor.yPos;
-            if(isValidToMoveTo(cursor.xPos, cursor.yPos += CROSSHAIR_SPEED)) {
+            checker = isValidToMoveTo(cursor.xPos, (cursor.yPos+CROSSHAIR_SPEED));
+            if(checker == 1) {
+                tempx = cursor.xPos;
+                tempy = cursor.yPos;
                 cursor.yPos += CROSSHAIR_SPEED;
             }
+        }else if(input == 's') {
+            shoot(cursor.xPos, cursor.yPos, shots);
         }
+    }
+
+    for(int i = 0; i < MAX_MISSILES; i++) {
+        if(bullet[i].changesAfter != 0) {
+                if(bullet[i].direction == 1) {
+                    bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
+                }
+                else {
+                    bullet[i].xPos = bullet[i].xOrigin - (int)(h/bullet[i].changesAfter);
+                }
+            }
+            bullet[i].yPos += 1;
     }
     printf("\033[?1003l\n");
     wrefresh(game);
