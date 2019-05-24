@@ -7,6 +7,7 @@
 #define WIDTH 125
 #define HOUSES 6
 #define MAX_MISSILES 10
+#define CROSSHAIR_SPEED 3
 
 
 
@@ -21,12 +22,26 @@ typedef struct Bullet {
     int target;
 } Bullet;
 
+typedef struct Cursor {
+    int xPos;
+    int yPos;
+    int speed;
+} Cursor;
+
+
+/*Cursor createCursor() {
+    Cursor myCursor;
+    myCursor.xPos = 10;
+    myCursor.yPos = 20;
+    myCursor.speed = CROSSHAIR_SPEED;
+}*/
+
+
 void createWindow() {
     initscr();
     clear();
     cbreak();
     noecho();
-    keypad(window, TRUE);
 }
 
 void drawHouse(int x, int y){
@@ -172,21 +187,35 @@ void createBase(int housePos[HOUSES]) {
 
 
 
+int isValidToMoveTo(int x, int y) {
+    if(x > 44 || x < 1) {
+        return -1;
+    }
+    if(y > 123 || y < 1) {
+        return -1;
+    }
+    return 1;
+}
+
+
+
 
 int main() {
     int housePos[HOUSES];
     Bullet bullet[MAX_MISSILES];
-    int temp;
+    int input, tempx, tempy;
     srand(time(NULL));
-    MEVENT event;
 
-    mousemask(BUTTON1_PRESSED | BUTTON2_PRESSED, NULL);
+    //mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
+    //EMERGENCY USE ONLY!!! printf("\033[?1003h\n");
 
     createWindow();
     refresh();
     WINDOW *game;
     game = newwin(HEIGHT, WIDTH, 0,0);
     box(game,0,0);
+    keypad(stdscr, TRUE);
+    keypad(game, TRUE);
     wrefresh(game);
     createBase(housePos);
     
@@ -205,7 +234,6 @@ int main() {
             mvaddch(bullet[i].yPos, bullet[i].xPos, '*');
         }
         for(int i = 0; i < MAX_MISSILES; i++) {
-            //printf ("h=%d, changes %d.\n",h,bullet[i].changesAfter);
             if(bullet[i].changesAfter != 0) {
                 if(bullet[i].direction == 1) {
                     bullet[i].xPos = bullet[i].xOrigin + (int)(h/bullet[i].changesAfter);
@@ -217,19 +245,57 @@ int main() {
             bullet[i].yPos += 1;
         }
         refresh();
-        usleep(100000);
+        usleep(10000);
     }
 
-    move(1,1);
+    wrefresh(game);
 
+    Cursor cursor;
+    cursor.xPos = 44;
+    cursor.yPos = 62;
+    cursor.speed = CROSSHAIR_SPEED;
     
-
     while(1) {
-        getmouse(&event);
-        while(KEY_MOUSE) {
-            printw("hmmm ");
+        
+
+        mvprintw(1,1,"%d %d",cursor.xPos, cursor.yPos);
+        mvaddch(cursor.xPos,cursor.yPos,'X');
+        mvaddch(tempx,tempy,' ');
+        mvaddch(51,126, 'L');
+        mvaddch(51,126, 'L');
+        refresh();
+
+        input = getch();
+
+        if(input == KEY_UP) {
+            tempx = cursor.xPos;
+            tempy = cursor.yPos;
+            if(isValidToMoveTo(cursor.xPos -= CROSSHAIR_SPEED, cursor.yPos)) {
+                cursor.xPos -= CROSSHAIR_SPEED;
+            }
+        }else if(input == KEY_DOWN) {
+            tempx = cursor.xPos;
+            tempy = cursor.yPos;
+            if(isValidToMoveTo(cursor.xPos  += CROSSHAIR_SPEED, cursor.yPos)) {
+                cursor.xPos += CROSSHAIR_SPEED;
+            }
+        }else if(input == KEY_LEFT) {
+            tempx = cursor.xPos;
+            tempy = cursor.yPos;
+            if(isValidToMoveTo(cursor.xPos, cursor.yPos  -= CROSSHAIR_SPEED)) {
+                cursor.yPos -= CROSSHAIR_SPEED;
+            }
+        }else if(input == KEY_RIGHT) {
+            tempx = cursor.xPos;
+            tempy = cursor.yPos;
+            if(isValidToMoveTo(cursor.xPos, cursor.yPos += CROSSHAIR_SPEED)) {
+                cursor.yPos += CROSSHAIR_SPEED;
+            }
         }
     }
+    printf("\033[?1003l\n");
+    wrefresh(game);
+    refresh();
     delwin(game);
     endwin();
 }
